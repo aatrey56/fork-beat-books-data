@@ -1,7 +1,5 @@
-import requests
 import pandas as pd
 import numpy as np
-from bs4 import BeautifulSoup, Comment
 
 from sqlalchemy.orm import Session
 from src.core.database import SessionLocal
@@ -14,7 +12,7 @@ def clean_value(v):
     try:
         if pd.isna(v):
             return None
-    except:
+    except (TypeError, ValueError):
         pass
 
     if isinstance(v, np.generic):

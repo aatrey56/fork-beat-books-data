@@ -56,7 +56,7 @@ def clean_value(v):
     try:
         if pd.isna(v):
             return None
-    except:
+    except (TypeError, ValueError):
         pass
 
     # numpy → python
@@ -141,7 +141,7 @@ def map_scraped_to_model(scraped: dict, season: int) -> TeamGameCreate:
     if raw_date:
         try:
             date_val = datetime.strptime(f"{raw_date} {season}", "%B %d %Y").date()
-        except:
+        except (TypeError, ValueError):
             date_val = None
 
     team = scraped["team"]
