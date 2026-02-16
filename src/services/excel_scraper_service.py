@@ -18,6 +18,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium_stealth import stealth
 
 from src.core.database import SessionLocal
+from src.core.config import settings
 from src.repositories.scraped_data_repo import ScrapedDataRepository
 from src.dtos.scraped_data_dto import ScrapedDataMetadataCreate
 
@@ -71,7 +72,7 @@ def extract_tables_from_url(url: str) -> List[Dict[str, Any]]:
         Each dict has keys: table_id, table_name, dataframe, source
     """
     # Add delay to be respectful to the server and avoid getting blocked
-    time.sleep(60)  # 60 second delay between requests
+    time.sleep(settings.SCRAPE_DELAY_SECONDS)
 
     # Use Selenium in visible mode to bypass Cloudflare bot detection
     # (Cloudflare blocks headless browsers but allows visible Chrome)
