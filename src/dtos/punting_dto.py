@@ -3,7 +3,7 @@ DTOs for team punting operations.
 """
 from decimal import Decimal
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PuntingCreate(BaseModel):
@@ -32,5 +32,4 @@ class PuntingResponse(PuntingCreate):
     """DTO for team punting response."""
     id: int = Field(..., description="Record ID")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

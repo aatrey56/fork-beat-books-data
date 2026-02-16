@@ -3,7 +3,7 @@ DTOs for team defense operations.
 """
 from decimal import Decimal
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TeamDefenseCreate(BaseModel):
@@ -47,5 +47,4 @@ class TeamDefenseResponse(TeamDefenseCreate):
     """DTO for team defense response."""
     id: int = Field(..., description="Record ID")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
