@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 from sqlalchemy.orm import Session
 from sqlalchemy import text, inspect
-from typing import Dict, Any, List
+from typing import List
 
 from src.entities.scraped_data import ScrapedData
 from src.repositories.base_repo import BaseRepository

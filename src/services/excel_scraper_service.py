@@ -16,7 +16,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium_stealth import stealth
+from selenium_stealth import stealth  # noqa: F401
 
 from src.core.database import SessionLocal
 from src.core.config import settings

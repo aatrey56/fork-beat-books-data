@@ -12,7 +12,7 @@ class StandingsCreate(BaseModel):
 
     tm: str = Field(..., min_length=1, max_length=64, description="Team name")
     w: Optional[int] = Field(None, ge=0, description="Wins")
-    l: Optional[int] = Field(None, ge=0, description="Losses")
+    l: Optional[int] = Field(None, ge=0, description="Losses")  # noqa: E741
     t: Optional[int] = Field(None, ge=0, description="Ties")
     win_pct: Optional[Decimal] = Field(None, ge=0, le=1, description="Win percentage")
     pf: Optional[int] = Field(None, ge=0, description="Points for")

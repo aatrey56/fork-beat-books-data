@@ -3,7 +3,7 @@ DTOs for team offense operations.
 """
 from decimal import Decimal
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TeamOffenseCreate(BaseModel):
