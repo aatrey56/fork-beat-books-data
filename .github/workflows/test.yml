@@ -1,6 +1,7 @@
+---
 name: Test
 
-on:
+"on":
   push:
     branches: [main, develop]
   pull_request:
@@ -22,7 +23,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-test-${{ hashFiles('**/requirements*.txt') }}
+          key: >-
+            ${{ runner.os }}-pip-test-${{
+            hashFiles('**/requirements*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-test-
             ${{ runner.os }}-pip-
@@ -33,7 +36,8 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=src --cov-report=xml --cov-report=term --cov-fail-under=70
+          pytest --cov=src --cov-report=xml \
+            --cov-report=term --cov-fail-under=70
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

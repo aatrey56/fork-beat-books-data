@@ -1,6 +1,7 @@
+---
 name: Security Scan
 
-on:
+"on":
   push:
     branches: [main, develop]
   pull_request:
@@ -25,7 +26,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-security-${{ hashFiles('**/requirements*.txt') }}
+          key: >-
+            ${{ runner.os }}-pip-security-${{
+            hashFiles('**/requirements*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-security-
             ${{ runner.os }}-pip-
