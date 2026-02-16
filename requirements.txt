@@ -30,3 +30,7 @@ selenium-stealth
 webdriver-manager
 openpyxl
 pydantic-settings
+
+# Type stubs for mypy
+types-requests
+types-beautifulsoup4

@@ -262,14 +262,12 @@ async def scrape_from_excel(excel_path: str) -> Dict[str, Any]:
     db = SessionLocal()
     repo = ScrapedDataRepository(db)
 
-    results = {
-        'urls_processed': 0,
-        'urls_success': 0,
-        'urls_failed': 0,
-        'tables_extracted': 0,
-        'rows_inserted': 0,
-        'errors': []
-    }
+    urls_processed = 0
+    urls_success = 0
+    urls_failed = 0
+    tables_extracted = 0
+    rows_inserted = 0
+    errors: List[str] = []
 
     try:
         # Ensure metadata tracking table exists
@@ -277,7 +275,7 @@ async def scrape_from_excel(excel_path: str) -> Dict[str, Any]:
 
         # Read URLs from Excel
         urls_df = read_excel_urls(excel_path)
-        results['urls_processed'] = len(urls_df)
+        urls_processed = len(urls_df)
 
         # Process each URL
         for idx, row in urls_df.iterrows():
@@ -297,7 +295,7 @@ async def scrape_from_excel(excel_path: str) -> Dict[str, Any]:
                     url,
                     url=url
                 )
-                results['tables_extracted'] += len(tables)
+                tables_extracted += len(tables)
 
                 # Process each table
                 for table_info in tables:
@@ -317,7 +315,7 @@ async def scrape_from_excel(excel_path: str) -> Dict[str, Any]:
 
                     # Use repository to upsert data (idempotent)
                     rows = repo.upsert_dataframe(dynamic_table_name, df)
-                    results['rows_inserted'] += rows
+                    rows_inserted += rows
 
                     # Track metadata in scraped_data_metadata table using DTO
                     metadata_dto = ScrapedDataMetadataCreate(
@@ -333,20 +331,34 @@ async def scrape_from_excel(excel_path: str) -> Dict[str, Any]:
                     )
                     repo.track_scraped_data(metadata_dto)
 
-                results['urls_success'] += 1
+                urls_success += 1
 
             except Exception as e:
                 error_msg = f"Failed to process {url}: {str(e)}"
-                results['errors'].append(error_msg)
-                results['urls_failed'] += 1
+                errors.append(error_msg)
+                urls_failed += 1
                 print(error_msg)
                 continue
 
-        return results
+        return {
+            'urls_processed': urls_processed,
+            'urls_success': urls_success,
+            'urls_failed': urls_failed,
+            'tables_extracted': tables_extracted,
+            'rows_inserted': rows_inserted,
+            'errors': errors,
+        }
 
     except Exception as e:
-        results['errors'].append(f"Fatal error: {str(e)}")
-        return results
+        errors.append(f"Fatal error: {str(e)}")
+        return {
+            'urls_processed': urls_processed,
+            'urls_success': urls_success,
+            'urls_failed': urls_failed,
+            'tables_extracted': tables_extracted,
+            'rows_inserted': rows_inserted,
+            'errors': errors,
+        }
 
     finally:
         db.close()

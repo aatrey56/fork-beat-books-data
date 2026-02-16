@@ -170,4 +170,6 @@ def retry_with_backoff(
         }
     )
 
-    raise last_exception
+    if last_exception is not None:
+        raise last_exception
+    raise RuntimeError(f"All {max_retries} scrape attempts failed")
