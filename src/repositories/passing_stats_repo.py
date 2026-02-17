@@ -2,7 +2,7 @@
 
 from typing import Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import select, or_
+from sqlalchemy import select
 
 from src.entities.passing_stats import PassingStats
 from src.repositories.base_repo import BaseRepository

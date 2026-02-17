@@ -196,8 +196,8 @@ class TestStatsRetrievalService:
         """Test that get_standings returns standings with pagination."""
         # Arrange
         mock_standings = [
-            Standings(id=1, season=2023, tm="Team A", w=12, l=5),
-            Standings(id=2, season=2023, tm="Team B", w=10, l=7),
+            Standings(id=1, season=2023, tm="Team A", w=12, losses=5),
+            Standings(id=2, season=2023, tm="Team B", w=10, losses=7),
         ]
         service.standings_repo.find_by_season.return_value = mock_standings
         service.standings_repo.count_by_season.return_value = 32
