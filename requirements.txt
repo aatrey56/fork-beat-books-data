@@ -15,7 +15,7 @@ psycopg2-binary
 alembic
 
 # If you plan JWT auth soon
-python-jose
+python-jose[cryptography]
 passlib[bcrypt]
 
 # If scraping code uses aiohttp or requests, include these:
