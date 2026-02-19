@@ -1,4 +1,5 @@
 """Service layer for retrieving NFL stats data."""
+
 from __future__ import annotations
 
 from typing import Optional
@@ -31,7 +32,7 @@ class StatsRetrievalService:
         offset: int = 0,
         limit: int = 50,
         sort_by: str = "pf",
-        order: str = "desc"
+        order: str = "desc",
     ) -> dict:
         """
         Get all teams for a given season with pagination.
@@ -50,21 +51,12 @@ class StatsRetrievalService:
         limit = min(limit, 200)
 
         teams = self.team_offense_repo.find_by_season(
-            season=season,
-            limit=limit,
-            offset=offset,
-            sort_by=sort_by,
-            order=order
+            season=season, limit=limit, offset=offset, sort_by=sort_by, order=order
         )
 
         total = self.team_offense_repo.count_by_season(season)
 
-        return {
-            "data": teams,
-            "total": total,
-            "offset": offset,
-            "limit": limit
-        }
+        return {"data": teams, "total": total, "offset": offset, "limit": limit}
 
     def get_team_stats(self, team: str, season: int) -> Optional[dict]:
         """
@@ -101,7 +93,9 @@ class StatsRetrievalService:
                 "yards": team_stats.yds_pass,
                 "touchdowns": team_stats.td_pass,
                 "interceptions": team_stats.ints,
-                "net_yards_per_attempt": float(team_stats.nypa) if team_stats.nypa else None,
+                "net_yards_per_attempt": (
+                    float(team_stats.nypa) if team_stats.nypa else None
+                ),
                 "first_downs": team_stats.firstd_pass,
             },
             "rushing": {
@@ -150,7 +144,7 @@ class StatsRetrievalService:
         offset: int = 0,
         limit: int = 50,
         sort_by: str = "win_pct",
-        order: str = "desc"
+        order: str = "desc",
     ) -> dict:
         """
         Get standings for a given season with pagination.
@@ -169,21 +163,12 @@ class StatsRetrievalService:
         limit = min(limit, 200)
 
         standings = self.standings_repo.find_by_season(
-            season=season,
-            limit=limit,
-            offset=offset,
-            sort_by=sort_by,
-            order=order
+            season=season, limit=limit, offset=offset, sort_by=sort_by, order=order
         )
 
         total = self.standings_repo.count_by_season(season)
 
-        return {
-            "data": standings,
-            "total": total,
-            "offset": offset,
-            "limit": limit
-        }
+        return {"data": standings, "total": total, "offset": offset, "limit": limit}
 
     def get_games(
         self,
@@ -193,7 +178,7 @@ class StatsRetrievalService:
         offset: int = 0,
         limit: int = 50,
         sort_by: str = "week",
-        order: str = "asc"
+        order: str = "asc",
     ) -> dict:
         """
         Get games for a season, optionally filtered by week.
@@ -219,7 +204,7 @@ class StatsRetrievalService:
             limit=limit,
             offset=offset,
             sort_by=sort_by,
-            order=order
+            order=order,
         )
 
         total = self.team_game_repo.count_by_season(self.session, season, week)
@@ -229,7 +214,7 @@ class StatsRetrievalService:
             "total": total,
             "offset": offset,
             "limit": limit,
-            "week": week
+            "week": week,
         }
 
     def search_players(
@@ -239,7 +224,7 @@ class StatsRetrievalService:
         position: Optional[str] = None,
         *,
         offset: int = 0,
-        limit: int = 50
+        limit: int = 50,
     ) -> dict:
         """
         Search for players across all stat categories.
@@ -258,26 +243,15 @@ class StatsRetrievalService:
         limit = min(limit, 200)
 
         passing = self.passing_stats_repo.search_players(
-            query=query,
-            season=season,
-            limit=limit,
-            offset=offset
+            query=query, season=season, limit=limit, offset=offset
         )
 
         rushing = self.rushing_stats_repo.search_players(
-            query=query,
-            season=season,
-            position=position,
-            limit=limit,
-            offset=offset
+            query=query, season=season, position=position, limit=limit, offset=offset
         )
 
         receiving = self.receiving_stats_repo.search_players(
-            query=query,
-            season=season,
-            position=position,
-            limit=limit,
-            offset=offset
+            query=query, season=season, position=position, limit=limit, offset=offset
         )
 
         return {

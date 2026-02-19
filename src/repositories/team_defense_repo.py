@@ -12,7 +12,15 @@ class TeamDefenseRepository(BaseRepository[TeamDefense]):
     def __init__(self, session: Session) -> None:
         super().__init__(session=session, model=TeamDefense)
 
-    def find_by_season(self, season: int, *, limit: int = 50, offset: int = 0, sort_by: str = "pa", order: str = "asc") -> list[TeamDefense]:
+    def find_by_season(
+        self,
+        season: int,
+        *,
+        limit: int = 50,
+        offset: int = 0,
+        sort_by: str = "pa",
+        order: str = "asc",
+    ) -> list[TeamDefense]:
         """Find all team defense stats for a given season with pagination and sorting."""
         stmt = select(self.model).where(self.model.season == season)
 
@@ -29,13 +37,17 @@ class TeamDefenseRepository(BaseRepository[TeamDefense]):
     def find_by_team_and_season(self, team: str, season: int) -> Optional[TeamDefense]:
         """Find team defense stats for a specific team and season."""
         stmt = select(self.model).where(
-            self.model.tm == team,
-            self.model.season == season
+            self.model.tm == team, self.model.season == season
         )
         return self.session.execute(stmt).scalar_one_or_none()
 
     def count_by_season(self, season: int) -> int:
         """Count total teams for a season."""
         from sqlalchemy import func
-        stmt = select(func.count()).select_from(self.model).where(self.model.season == season)
+
+        stmt = (
+            select(func.count())
+            .select_from(self.model)
+            .where(self.model.season == season)
+        )
         return self.session.execute(stmt).scalar() or 0

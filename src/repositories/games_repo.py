@@ -11,7 +11,15 @@ class GamesRepository(BaseRepository[Games]):
     def __init__(self, session: Session) -> None:
         super().__init__(session=session, model=Games)
 
-    def find_by_season(self, season: int, *, limit: int = 300, offset: int = 0, sort_by: str = "week", order: str = "asc") -> list[Games]:
+    def find_by_season(
+        self,
+        season: int,
+        *,
+        limit: int = 300,
+        offset: int = 0,
+        sort_by: str = "week",
+        order: str = "asc",
+    ) -> list[Games]:
         """Find all games for a given season with pagination and sorting."""
         stmt = select(self.model).where(self.model.season == season)
 
@@ -28,5 +36,10 @@ class GamesRepository(BaseRepository[Games]):
     def count_by_season(self, season: int) -> int:
         """Count total games for a season."""
         from sqlalchemy import func
-        stmt = select(func.count()).select_from(self.model).where(self.model.season == season)
+
+        stmt = (
+            select(func.count())
+            .select_from(self.model)
+            .where(self.model.season == season)
+        )
         return self.session.execute(stmt).scalar() or 0

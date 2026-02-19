@@ -38,7 +38,16 @@ class TeamGameRepository:
         return TeamGameRepository.create(db, obj)
 
     @staticmethod
-    def find_by_season_and_week(db: Session, season: int, week: Optional[int] = None, *, limit: int = 50, offset: int = 0, sort_by: str = "week", order: str = "asc") -> list[TeamGame]:
+    def find_by_season_and_week(
+        db: Session,
+        season: int,
+        week: Optional[int] = None,
+        *,
+        limit: int = 50,
+        offset: int = 0,
+        sort_by: str = "week",
+        order: str = "asc"
+    ) -> list[TeamGame]:
         """Find games for a season, optionally filtered by week."""
         stmt = select(TeamGame).where(TeamGame.season == season)
 
@@ -60,7 +69,10 @@ class TeamGameRepository:
     def count_by_season(db: Session, season: int, week: Optional[int] = None) -> int:
         """Count total games for a season and optional week."""
         from sqlalchemy import func
-        stmt = select(func.count()).select_from(TeamGame).where(TeamGame.season == season)
+
+        stmt = (
+            select(func.count()).select_from(TeamGame).where(TeamGame.season == season)
+        )
 
         if week is not None:
             stmt = stmt.where(TeamGame.week == week)
