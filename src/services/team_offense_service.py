@@ -1,3 +1,5 @@
+import logging
+
 import pandas as pd
 import numpy as np
 
@@ -6,6 +8,8 @@ from src.core.database import SessionLocal
 from src.entities.team_offense import TeamOffense
 from src.repositories.team_offense_repo import TeamOffenseRepository
 from src.dtos.team_offense_dto import TeamOffenseCreate
+
+logger = logging.getLogger(__name__)
 
 
 def clean_value(v):
@@ -118,8 +122,12 @@ async def scrape_and_store_team_offense(season: int):
     db: Session = SessionLocal()
 
     try:
+        logger.info("Fetching team offense data for season %d", season)
         df = get_team_offense_dataframe(season)
+        logger.debug("Retrieved DataFrame with %d rows", len(df))
+
         parsed = parse_team_offense(df, season)
+        logger.info("Parsed %d team offense records for season %d", len(parsed), season)
 
         repo = TeamOffenseRepository(db)
 
@@ -134,7 +142,16 @@ async def scrape_and_store_team_offense(season: int):
 
         db.commit()
 
+        logger.info(
+            "Successfully saved %d team offense records for season %d",
+            len(saved),
+            season,
+        )
         return saved
+
+    except Exception:
+        logger.error("Failed to scrape team offense for season %d", season, exc_info=True)
+        raise
 
     finally:
         db.close()

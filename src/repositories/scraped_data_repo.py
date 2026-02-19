@@ -9,11 +9,15 @@ This repository handles:
 
 from __future__ import annotations
 
+import logging
+
 import numpy as np
 import pandas as pd
 from sqlalchemy.orm import Session
 from sqlalchemy import text, inspect, Inspector
 from typing import List
+
+logger = logging.getLogger(__name__)
 
 from src.entities.scraped_data import ScrapedData
 from src.repositories.base_repo import BaseRepository
@@ -180,8 +184,8 @@ class ScrapedDataRepository(BaseRepository[ScrapedData]):
             return result.rowcount  # type: ignore[attr-defined]
         except Exception as e:
             self.session.rollback()
-            print(
-                f"Warning: Could not delete from {clean_table_name}: {e}"  # nosec B608
+            logger.warning(
+                "Could not delete from %s: %s", clean_table_name, e
             )
             return 0
 
@@ -256,7 +260,7 @@ class ScrapedDataRepository(BaseRepository[ScrapedData]):
                 rows_inserted += 1
             except Exception as e:
                 self.session.rollback()
-                print(f"Warning: Could not insert row into {clean_table_name}: {e}")
+                logger.warning("Could not insert row into %s: %s", clean_table_name, e)
                 continue
 
         self.session.commit()

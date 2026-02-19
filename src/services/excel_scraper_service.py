@@ -179,7 +179,7 @@ def extract_tables_from_url(url: str) -> List[Dict[str, Any]]:
                 }
             )
         except Exception as e:
-            print(f"Warning: Could not parse visible table {table_id}: {e}")
+            logger.warning("Could not parse visible table %s: %s", table_id, e)
             continue
 
     # Method 2: Extract tables from HTML comments (PFR often hides tables in comments)
@@ -224,12 +224,12 @@ def extract_tables_from_url(url: str) -> List[Dict[str, Any]]:
                             }
                         )
                     except Exception as e:
-                        print(
-                            f"Warning: Could not parse commented table {table_id}: {e}"
+                        logger.warning(
+                            "Could not parse commented table %s: %s", table_id, e
                         )
                         continue
             except Exception as e:
-                print(f"Warning: Could not parse comment: {e}")
+                logger.warning("Could not parse comment: %s", e)
                 continue
 
     return extracted_tables
@@ -369,7 +369,7 @@ async def scrape_from_excel(excel_path: str) -> Dict[str, Any]:
                 error_msg = f"Failed to process {url}: {str(e)}"
                 errors.append(error_msg)
                 urls_failed += 1
-                print(error_msg)
+                logger.error(error_msg)
                 continue
 
         return {
