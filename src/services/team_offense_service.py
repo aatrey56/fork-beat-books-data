@@ -112,7 +112,9 @@ async def scrape_and_store_team_offense(season: int):
         return saved
 
     except Exception:
-        logger.error("Failed to scrape team offense for season %d", season, exc_info=True)
+        logger.error(
+            "Failed to scrape team offense for season %d", season, exc_info=True
+        )
         raise
 
     finally:

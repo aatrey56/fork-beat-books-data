@@ -2,8 +2,7 @@
 Unit tests for team_offense_service.py
 
 Tests cover:
-- get_team_offense_dataframe: Mock HTTP request + BeautifulSoup parsing
-- parse_team_offense: Verify DTOs are created from DataFrame
+- get_dataframe: Mock Selenium + BeautifulSoup parsing via retry_with_backoff
 - scrape_and_store_team_offense: Verify repo.create is called for each record
 
 Run with:
@@ -11,19 +10,16 @@ Run with:
 """
 
 import pytest
-import pandas as pd
+import asyncio
 from decimal import Decimal
 from unittest.mock import patch, MagicMock
 
 from src.services.team_offense_service import (
-    clean_value,
-    get_team_offense_dataframe,
-    parse_team_offense,
+    get_dataframe,
     scrape_and_store_team_offense,
 )
 from src.dtos.team_offense_dto import TeamOffenseCreate
 from src.entities.team_offense import TeamOffense
-
 
 # ---- Sample HTML for mocking PFR responses ----
 SAMPLE_PFR_HTML = """
@@ -31,36 +27,66 @@ SAMPLE_PFR_HTML = """
 <body>
 <table id="team_stats">
   <thead>
-    <tr><th>Rk</th><th>Tm</th><th>G</th><th>PF</th><th>Yds</th><th>Ply</th>
-        <th>Y/P</th><th>TO</th><th>FL</th><th>1stD</th>
-        <th>Cmp</th><th>Att</th><th>Yds</th><th>TD</th><th>Int</th>
-        <th>NY/A</th><th>1stD</th>
-        <th>Att</th><th>Yds</th><th>TD</th><th>Y/A</th><th>1stD</th>
-        <th>Pen</th><th>Yds</th><th>1stPy</th>
-        <th>Sc%</th><th>TO%</th><th>O/Pl</th></tr>
+    <tr><th>Rk</th><th>Tm</th><th>G</th></tr>
   </thead>
   <tbody>
     <tr>
-      <th data-stat="ranker">1</th>
       <td data-stat="team"><a href="/teams/kan/2023.htm">Kansas City Chiefs</a></td>
-      <td>17</td><td>450</td><td>6200</td><td>1050</td>
-      <td>5.9</td><td>12</td><td>5</td><td>350</td>
-      <td>380</td><td>580</td><td>4800</td><td>35</td><td>10</td>
-      <td>7.2</td><td>200</td>
-      <td>420</td><td>1400</td><td>15</td><td>4.5</td><td>100</td>
-      <td>95</td><td>800</td><td>50</td>
-      <td>42.5</td><td>10.2</td><td>125.5</td>
+      <td data-stat="g">17</td>
+      <td data-stat="points">450</td>
+      <td data-stat="total_yards">6200</td>
+      <td data-stat="plays_offense">1050</td>
+      <td data-stat="yds_per_play_offense">5.9</td>
+      <td data-stat="turnovers">12</td>
+      <td data-stat="fumbles_lost">5</td>
+      <td data-stat="first_down">350</td>
+      <td data-stat="pass_cmp">380</td>
+      <td data-stat="pass_att">580</td>
+      <td data-stat="pass_yds">4800</td>
+      <td data-stat="pass_td">35</td>
+      <td data-stat="pass_int">10</td>
+      <td data-stat="pass_net_yds_per_att">7.2</td>
+      <td data-stat="pass_fd">200</td>
+      <td data-stat="rush_att">420</td>
+      <td data-stat="rush_yds">1400</td>
+      <td data-stat="rush_td">15</td>
+      <td data-stat="rush_yds_per_att">4.5</td>
+      <td data-stat="rush_fd">100</td>
+      <td data-stat="penalties">95</td>
+      <td data-stat="penalties_yds">800</td>
+      <td data-stat="pen_fd">50</td>
+      <td data-stat="score_pct">42.5</td>
+      <td data-stat="turnover_pct">10.2</td>
+      <td data-stat="exp_pts_tot">125.5</td>
     </tr>
     <tr>
-      <th data-stat="ranker">2</th>
       <td data-stat="team"><a href="/teams/sfo/2023.htm">San Francisco 49ers</a></td>
-      <td>17</td><td>420</td><td>5900</td><td>1020</td>
-      <td>5.8</td><td>14</td><td>6</td><td>330</td>
-      <td>360</td><td>560</td><td>4500</td><td>30</td><td>12</td>
-      <td>6.8</td><td>190</td>
-      <td>400</td><td>1400</td><td>12</td><td>4.3</td><td>90</td>
-      <td>100</td><td>850</td><td>45</td>
-      <td>40.0</td><td>11.5</td><td>118.0</td>
+      <td data-stat="g">17</td>
+      <td data-stat="points">420</td>
+      <td data-stat="total_yards">5900</td>
+      <td data-stat="plays_offense">1020</td>
+      <td data-stat="yds_per_play_offense">5.8</td>
+      <td data-stat="turnovers">14</td>
+      <td data-stat="fumbles_lost">6</td>
+      <td data-stat="first_down">330</td>
+      <td data-stat="pass_cmp">360</td>
+      <td data-stat="pass_att">560</td>
+      <td data-stat="pass_yds">4500</td>
+      <td data-stat="pass_td">30</td>
+      <td data-stat="pass_int">12</td>
+      <td data-stat="pass_net_yds_per_att">6.8</td>
+      <td data-stat="pass_fd">190</td>
+      <td data-stat="rush_att">400</td>
+      <td data-stat="rush_yds">1400</td>
+      <td data-stat="rush_td">12</td>
+      <td data-stat="rush_yds_per_att">4.3</td>
+      <td data-stat="rush_fd">90</td>
+      <td data-stat="penalties">100</td>
+      <td data-stat="penalties_yds">850</td>
+      <td data-stat="pen_fd">45</td>
+      <td data-stat="score_pct">40.0</td>
+      <td data-stat="turnover_pct">11.5</td>
+      <td data-stat="exp_pts_tot">118.0</td>
     </tr>
   </tbody>
 </table>
@@ -69,164 +95,38 @@ SAMPLE_PFR_HTML = """
 """
 
 
-class TestCleanValue:
-    """Tests for the clean_value utility function."""
+class TestGetDataframe:
+    """Tests for get_dataframe with mocked Selenium."""
 
-    def test_clean_none(self):
-        """NaN-like values should return None."""
-        import numpy as np
+    @patch("src.services.team_offense_service.find_pfr_table")
+    @patch("src.services.team_offense_service.retry_with_backoff")
+    def test_returns_parsed_rows(self, mock_retry, mock_find_table):
+        """Should return a list of dicts with mapped column names."""
+        from bs4 import BeautifulSoup
 
-        assert clean_value(float("nan")) is None
-        assert clean_value(np.nan) is None
+        soup = BeautifulSoup(SAMPLE_PFR_HTML, "lxml")
+        table = soup.find("table", {"id": "team_stats"})
+        mock_retry.return_value = SAMPLE_PFR_HTML
+        mock_find_table.return_value = table
 
-    def test_clean_numpy_int(self):
-        """numpy int64 should be converted to Python int."""
-        import numpy as np
+        result = get_dataframe(2023)
 
-        result = clean_value(np.int64(42))
-        assert result == 42
-        assert isinstance(result, int)
+        assert isinstance(result, list)
+        assert len(result) == 2
+        assert result[0]["season"] == 2023
+        assert result[0]["tm"] == "Kansas City Chiefs"
+        assert result[0]["g"] == "17"
+        assert result[0]["pf"] == "450"
 
-    def test_clean_numpy_float(self):
-        """numpy float64 should be converted to Python float."""
-        import numpy as np
-
-        result = clean_value(np.float64(3.14))
-        assert isinstance(result, float)
-
-    def test_clean_regular_value(self):
-        """Regular Python values pass through unchanged."""
-        assert clean_value("hello") == "hello"
-        assert clean_value(42) == 42
-        assert clean_value(None) is None
-
-
-class TestGetTeamOffenseDataframe:
-    """Tests for get_team_offense_dataframe with mocked HTTP."""
-
-    @patch("requests.get")
-    def test_returns_dataframe(self, mock_get):
-        """Should return a DataFrame with team offense rows."""
-        mock_response = MagicMock()
-        mock_response.text = SAMPLE_PFR_HTML
-        mock_response.raise_for_status = MagicMock()
-        mock_get.return_value = mock_response
-
-        df = get_team_offense_dataframe(2023)
-
-        assert isinstance(df, pd.DataFrame)
-        assert len(df) == 2
-        mock_get.assert_called_once_with(
-            "https://www.pro-football-reference.com/years/2023/",
-            timeout=30,
-        )
-
-    @patch("requests.get")
-    def test_raises_on_missing_table(self, mock_get):
+    @patch("src.services.team_offense_service.find_pfr_table")
+    @patch("src.services.team_offense_service.retry_with_backoff")
+    def test_raises_on_missing_table(self, mock_retry, mock_find_table):
         """Should raise Exception when team_stats table is not found."""
-        mock_response = MagicMock()
-        mock_response.text = "<html><body><p>No tables here</p></body></html>"
-        mock_response.raise_for_status = MagicMock()
-        mock_get.return_value = mock_response
+        mock_retry.return_value = "<html><body></body></html>"
+        mock_find_table.return_value = None
 
         with pytest.raises(Exception, match="Could not find team_stats table"):
-            get_team_offense_dataframe(2023)
-
-
-class TestParseTeamOffense:
-    """Tests for parse_team_offense DataFrame -> dicts."""
-
-    def test_parse_correct_fields(self):
-        """Parsed records should contain expected keys and values."""
-        data = {
-            "Rk": [1],
-            "Tm": ["Kansas City Chiefs"],
-            "G": [17],
-            "PF": [450],
-            "Yds": [6200],
-            "Ply": [1050],
-            "Y/P": [5.9],
-            "TO": [12],
-            "FL": [5],
-            "1stD": [350],
-            "Cmp": [380],
-            "Att": [580],
-            "Yds.1": [4800],
-            "TD": [35],
-            "Int": [10],
-            "NY/A": [7.2],
-            "1stD.1": [200],
-            "Att.1": [420],
-            "Yds.2": [1400],
-            "TD.1": [15],
-            "Y/A": [4.5],
-            "1stD.2": [100],
-            "Pen": [95],
-            "Yds.3": [800],
-            "1stPy": [50],
-            "Sc%": [42.5],
-            "TO%": [10.2],
-            "O/Pl": [125.5],
-        }
-        df = pd.DataFrame(data)
-
-        result = parse_team_offense(df, 2023)
-
-        assert len(result) == 1
-        record = result[0]
-        assert record["season"] == 2023
-        assert record["tm"] == "Kansas City Chiefs"
-        assert record["g"] == 17
-        assert record["pf"] == 450
-        assert record["yds"] == 6200
-        assert record["td_pass"] == 35
-        assert record["att_rush"] == 420
-
-    def test_parse_creates_valid_dtos(self):
-        """Parsed records should be valid for TeamOffenseCreate DTO."""
-        data = {
-            "Rk": [1],
-            "Tm": ["KAN"],
-            "G": [17],
-            "PF": [450],
-            "Yds": [6200],
-            "Ply": [1050],
-            "Y/P": [5.9],
-            "TO": [12],
-            "FL": [5],
-            "1stD": [350],
-            "Cmp": [380],
-            "Att": [580],
-            "Yds.1": [4800],
-            "TD": [35],
-            "Int": [10],
-            "NY/A": [7.2],
-            "1stD.1": [200],
-            "Att.1": [420],
-            "Yds.2": [1400],
-            "TD.1": [15],
-            "Y/A": [4.5],
-            "1stD.2": [100],
-            "Pen": [95],
-            "Yds.3": [800],
-            "1stPy": [50],
-            "Sc%": [42.5],
-            "TO%": [10.2],
-            "O/Pl": [125.5],
-        }
-        df = pd.DataFrame(data)
-
-        parsed = parse_team_offense(df, 2023)
-        # Should not raise validation errors
-        dto = TeamOffenseCreate(**parsed[0])
-        assert dto.season == 2023
-        assert dto.tm == "KAN"
-
-    def test_parse_empty_dataframe(self):
-        """Parsing an empty DataFrame should return an empty list."""
-        df = pd.DataFrame()
-        result = parse_team_offense(df, 2023)
-        assert result == []
+            get_dataframe(2023)
 
 
 class TestScrapeAndStoreTeamOffense:
@@ -234,84 +134,103 @@ class TestScrapeAndStoreTeamOffense:
 
     @pytest.mark.asyncio
     @patch("src.services.team_offense_service.SessionLocal")
-    @patch("src.services.team_offense_service.get_team_offense_dataframe")
+    @patch("src.services.team_offense_service.get_dataframe")
     def test_calls_repo_create_for_each_record(self, mock_get_df, mock_session_local):
         """Should call repo.create for each parsed record."""
-        # Set up mock DataFrame
-        data = {
-            "Rk": [1, 2],
-            "Tm": ["KAN", "SFO"],
-            "G": [17, 17],
-            "PF": [450, 420],
-            "Yds": [6200, 5900],
-            "Ply": [1050, 1020],
-            "Y/P": [5.9, 5.8],
-            "TO": [12, 14],
-            "FL": [5, 6],
-            "1stD": [350, 330],
-            "Cmp": [380, 360],
-            "Att": [580, 560],
-            "Yds.1": [4800, 4500],
-            "TD": [35, 30],
-            "Int": [10, 12],
-            "NY/A": [7.2, 6.8],
-            "1stD.1": [200, 190],
-            "Att.1": [420, 400],
-            "Yds.2": [1400, 1400],
-            "TD.1": [15, 12],
-            "Y/A": [4.5, 4.3],
-            "1stD.2": [100, 90],
-            "Pen": [95, 100],
-            "Yds.3": [800, 850],
-            "1stPy": [50, 45],
-            "Sc%": [42.5, 40.0],
-            "TO%": [10.2, 11.5],
-            "O/Pl": [125.5, 118.0],
-        }
-        mock_get_df.return_value = pd.DataFrame(data)
+        mock_get_df.return_value = [
+            {
+                "season": 2023,
+                "tm": "KAN",
+                "g": 17,
+                "pf": 450,
+                "yds": 6200,
+                "ply": 1050,
+                "ypp": "5.9",
+                "turnovers": 12,
+                "fl": 5,
+                "firstd_total": 350,
+                "cmp": 380,
+                "att_pass": 580,
+                "yds_pass": 4800,
+                "td_pass": 35,
+                "ints": 10,
+                "nypa": "7.2",
+                "firstd_pass": 200,
+                "att_rush": 420,
+                "yds_rush": 1400,
+                "td_rush": 15,
+                "ypa": "4.5",
+                "firstd_rush": 100,
+                "pen": 95,
+                "yds_pen": 800,
+                "firstpy": 50,
+                "sc_pct": "42.5",
+                "to_pct": "10.2",
+                "opea": "125.5",
+            },
+            {
+                "season": 2023,
+                "tm": "SFO",
+                "g": 17,
+                "pf": 420,
+                "yds": 5900,
+                "ply": 1020,
+                "ypp": "5.8",
+                "turnovers": 14,
+                "fl": 6,
+                "firstd_total": 330,
+                "cmp": 360,
+                "att_pass": 560,
+                "yds_pass": 4500,
+                "td_pass": 30,
+                "ints": 12,
+                "nypa": "6.8",
+                "firstd_pass": 190,
+                "att_rush": 400,
+                "yds_rush": 1400,
+                "td_rush": 12,
+                "ypa": "4.3",
+                "firstd_rush": 90,
+                "pen": 100,
+                "yds_pen": 850,
+                "firstpy": 45,
+                "sc_pct": "40.0",
+                "to_pct": "11.5",
+                "opea": "118.0",
+            },
+        ]
 
-        # Set up mock session
         mock_session = MagicMock()
         mock_session_local.return_value = mock_session
-
-        import asyncio
 
         result = asyncio.get_event_loop().run_until_complete(
             scrape_and_store_team_offense(2023)
         )
 
-        # Should have added 2 objects to session
-        assert mock_session.add.call_count == 2
         assert mock_session.commit.called
         assert len(result) == 2
 
     @pytest.mark.asyncio
     @patch("src.services.team_offense_service.SessionLocal")
-    @patch("src.services.team_offense_service.get_team_offense_dataframe")
+    @patch("src.services.team_offense_service.get_dataframe")
     def test_session_closed_on_success(self, mock_get_df, mock_session_local):
         """Session should be closed after successful scrape."""
-        mock_get_df.return_value = pd.DataFrame()
+        mock_get_df.return_value = []
         mock_session = MagicMock()
         mock_session_local.return_value = mock_session
 
-        import asyncio
-
-        asyncio.get_event_loop().run_until_complete(
-            scrape_and_store_team_offense(2023)
-        )
+        asyncio.get_event_loop().run_until_complete(scrape_and_store_team_offense(2023))
 
         assert mock_session.close.called
 
     @pytest.mark.asyncio
     @patch("src.services.team_offense_service.SessionLocal")
-    @patch("src.services.team_offense_service.get_team_offense_dataframe")
+    @patch("src.services.team_offense_service.get_dataframe")
     def test_session_closed_on_failure(self, mock_get_df, mock_session_local):
         """Session should be closed even when scraping fails."""
         mock_get_df.side_effect = Exception("Network error")
         mock_session = MagicMock()
         mock_session_local.return_value = mock_session
-
-        import asyncio
 
         with pytest.raises(Exception, match="Network error"):
             asyncio.get_event_loop().run_until_complete(

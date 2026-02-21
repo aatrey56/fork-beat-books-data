@@ -7,6 +7,11 @@ Provides:
 - sample_passing_stats: A sample PassingStats entity for testing
 """
 
+import os
+
+# Set DATABASE_URL before any src imports so Settings() doesn't fail during collection
+os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
+
 import pytest
 from decimal import Decimal
 from sqlalchemy import create_engine, event
