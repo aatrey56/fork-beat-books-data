@@ -1,4 +1,5 @@
 """Unit tests for odds repository."""
+
 import pytest
 from datetime import datetime, date
 from decimal import Decimal
@@ -40,7 +41,7 @@ def sample_odds_dto():
         over_under=Decimal("47.5"),
         timestamp=datetime(2024, 9, 7, 10, 0, 0),
         is_opening=False,
-        is_closing=True
+        is_closing=True,
     )
 
 
@@ -79,7 +80,7 @@ class TestOddsRepository:
             week=1,
             home_team="KC",
             sportsbook="DraftKings",
-            timestamp=datetime(2024, 9, 7, 10, 0, 0)
+            timestamp=datetime(2024, 9, 7, 10, 0, 0),
         )
 
         assert retrieved is not None
@@ -125,7 +126,7 @@ class TestOddsRepository:
             spread_home=Decimal("-7.0"),
             spread_away=Decimal("7.0"),
             timestamp=datetime(2024, 9, 7, 10, 0, 0),
-            is_closing=True
+            is_closing=True,
         )
         OddsRepository.create(db_session, other_dto)
 
@@ -147,7 +148,7 @@ class TestOddsRepository:
             away_team="BAL",
             sportsbook="DraftKings",
             timestamp=datetime(2024, 9, 1, 10, 0, 0),
-            is_opening=True
+            is_opening=True,
         )
         OddsRepository.create(db_session, opening_dto)
 
@@ -168,7 +169,7 @@ class TestOddsRepository:
                 away_team="BAL",
                 sportsbook="DraftKings",
                 spread_home=Decimal(f"-{3 + hour * 0.1}"),
-                timestamp=datetime(2024, 9, 7, hour, 0, 0)
+                timestamp=datetime(2024, 9, 7, hour, 0, 0),
             )
             OddsRepository.create(db_session, dto)
 
@@ -203,7 +204,7 @@ class TestOddsRepository:
                 home_team="KC",
                 away_team="BAL",
                 sportsbook="DraftKings",
-                timestamp=datetime(2024, 9, 7, 10, 0, 0)
+                timestamp=datetime(2024, 9, 7, 10, 0, 0),
             ),
             OddsCreate(
                 season=2024,
@@ -212,8 +213,8 @@ class TestOddsRepository:
                 home_team="DAL",
                 away_team="NYG",
                 sportsbook="DraftKings",
-                timestamp=datetime(2024, 9, 7, 10, 0, 0)
-            )
+                timestamp=datetime(2024, 9, 7, 10, 0, 0),
+            ),
         ]
 
         created = OddsRepository.bulk_create(db_session, dtos)

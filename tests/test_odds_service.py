@@ -1,4 +1,5 @@
 """Unit tests for odds service with mocked API responses."""
+
 import pytest
 from datetime import datetime, date, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -40,27 +41,35 @@ class TestOddsService:
                             {
                                 "key": "spreads",
                                 "outcomes": [
-                                    {"name": "Kansas City Chiefs", "price": -110, "point": -3.0},
-                                    {"name": "Baltimore Ravens", "price": -110, "point": 3.0}
-                                ]
+                                    {
+                                        "name": "Kansas City Chiefs",
+                                        "price": -110,
+                                        "point": -3.0,
+                                    },
+                                    {
+                                        "name": "Baltimore Ravens",
+                                        "price": -110,
+                                        "point": 3.0,
+                                    },
+                                ],
                             },
                             {
                                 "key": "h2h",
                                 "outcomes": [
                                     {"name": "Kansas City Chiefs", "price": -150},
-                                    {"name": "Baltimore Ravens", "price": 130}
-                                ]
+                                    {"name": "Baltimore Ravens", "price": 130},
+                                ],
                             },
                             {
                                 "key": "totals",
                                 "outcomes": [
                                     {"name": "Over", "point": 47.5},
-                                    {"name": "Under", "point": 47.5}
-                                ]
-                            }
-                        ]
+                                    {"name": "Under", "point": 47.5},
+                                ],
+                            },
+                        ],
                     }
-                ]
+                ],
             }
         ]
 
@@ -91,31 +100,30 @@ class TestOddsService:
     @pytest.mark.asyncio
     async def test_fetch_odds_from_api_success(self, odds_service, sample_api_response):
         """Test successful API fetch."""
-        with patch("src.services.odds_service.settings") as mock_settings:
-            mock_settings.ODDS_API_KEY = "test_api_key"
-            mock_settings.ODDS_API_BASE_URL = "https://api.test.com"
+        # Set api_key directly since it's captured at init time
+        odds_service.api_key = "test_api_key"
+        odds_service.base_url = "https://api.test.com"
 
-            with patch("httpx.AsyncClient") as mock_client:
-                mock_response = MagicMock()
-                mock_response.json.return_value = sample_api_response
-                mock_response.raise_for_status = MagicMock()
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_response = MagicMock()
+            mock_response.json.return_value = sample_api_response
+            mock_response.raise_for_status = MagicMock()
 
-                mock_client.return_value.__aenter__.return_value.get = AsyncMock(
-                    return_value=mock_response
-                )
+            mock_client.return_value.__aenter__.return_value.get = AsyncMock(
+                return_value=mock_response
+            )
 
-                result = await odds_service.fetch_odds_from_api()
+            result = await odds_service.fetch_odds_from_api()
 
-                assert result == sample_api_response
+            assert result == sample_api_response
 
     @pytest.mark.asyncio
     async def test_fetch_odds_from_api_no_key(self, odds_service):
         """Test API fetch fails without API key."""
-        with patch("src.services.odds_service.settings") as mock_settings:
-            mock_settings.ODDS_API_KEY = ""
+        odds_service.api_key = ""
 
-            with pytest.raises(ValueError, match="ODDS_API_KEY not configured"):
-                await odds_service.fetch_odds_from_api()
+        with pytest.raises(ValueError, match="ODDS_API_KEY not configured"):
+            await odds_service.fetch_odds_from_api()
 
     def test_team_name_to_abbr(self, odds_service):
         """Test team name abbreviation conversion."""
