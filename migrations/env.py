@@ -1,3 +1,5 @@
+import logging
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -28,10 +30,12 @@ from src.entities.return_stats import ReturnStats
 from src.entities.scoring_stats import ScoringStats
 from src.entities.kicking import Kicking
 from src.entities.punting import Punting
-from src.entities.returns import Returns
+from src.entities.returns import TeamReturns
 from src.entities.games import Games
 from src.entities.standings import Standings
 from src.entities.team_game import TeamGame
+
+logger = logging.getLogger("alembic.env")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -49,10 +53,29 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 target_metadata = Base.metadata
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+
+def _log_environment_banner() -> None:
+    """Log which environment migrations are targeting."""
+    env = settings.ENV
+    banner = f"  ALEMBIC MIGRATION TARGET: {env.upper()}  "
+    separator = "=" * len(banner)
+    logger.warning("")
+    logger.warning(separator)
+    logger.warning(banner)
+    logger.warning(separator)
+    if env == "main":
+        logger.warning("*** PRODUCTION DATABASE -- Proceed with caution ***")
+    logger.warning("")
+
+
+def _check_production_safety() -> None:
+    """Block migrations on main unless ALLOW_PRODUCTION_MIGRATE=true is set."""
+    if settings.ENV == "main":
+        if os.environ.get("ALLOW_PRODUCTION_MIGRATE") != "true":
+            raise RuntimeError(
+                "Refusing to migrate production database. "
+                "Set ALLOW_PRODUCTION_MIGRATE=true to proceed."
+            )
 
 
 def run_migrations_offline() -> None:
@@ -67,6 +90,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
+    _log_environment_banner()
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -86,6 +110,9 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    _log_environment_banner()
+    _check_production_safety()
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
