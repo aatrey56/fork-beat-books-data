@@ -1,5 +1,15 @@
 """SQLAlchemy entity for odds data."""
-from sqlalchemy import Column, Integer, String, Date, Numeric, Boolean, DateTime, UniqueConstraint
+
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Date,
+    Numeric,
+    Boolean,
+    DateTime,
+    UniqueConstraint,
+)
 from src.entities.base import Base
 
 
@@ -8,6 +18,7 @@ class Odds(Base):
     Stores betting odds/lines from various sportsbooks.
     Tracks opening lines, closing lines, and line movements over time.
     """
+
     __tablename__ = "odds"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -40,7 +51,11 @@ class Odds(Base):
     # Ensure uniqueness per game/sportsbook/timestamp
     __table_args__ = (
         UniqueConstraint(
-            'season', 'week', 'home_team', 'sportsbook', 'timestamp',
-            name='uq_odds_game_sportsbook_timestamp'
+            "season",
+            "week",
+            "home_team",
+            "sportsbook",
+            "timestamp",
+            name="uq_odds_game_sportsbook_timestamp",
         ),
     )
