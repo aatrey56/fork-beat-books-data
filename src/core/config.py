@@ -1,16 +1,19 @@
 from pydantic_settings import BaseSettings
-from pydantic import field_validator, Field
-from typing import List
+from typing import List, Literal
 
 
 class Settings(BaseSettings):
-    """Centralized configuration for beat-books-data service."""
+    """Centralized configuration for beat-books-data service.
 
-    # Database
+    Required variables will cause a clear ValidationError at startup
+    if missing. See .env.example for the full variable list.
+    """
+
+    # Database (required — app won't start without it)
     DATABASE_URL: str
 
     # Scraping
-    SCRAPE_DELAY_SECONDS: int = Field(default=60, gt=0)
+    SCRAPE_DELAY_SECONDS: int = 60
     SCRAPE_REQUEST_TIMEOUT: int = 30  # seconds
     SCRAPE_MAX_RETRIES: int = 3
     SCRAPE_RETRY_DELAYS: List[int] = [
@@ -45,27 +48,17 @@ class Settings(BaseSettings):
     ODDS_API_BASE_URL: str = "https://api.the-odds-api.com"
 
     # App
+    ENV: Literal["local", "dev", "stage", "main"] = "local"
+    DEBUG: bool = False
     LOG_LEVEL: str = "INFO"
     API_HOST: str = "0.0.0.0"  # nosec B104
-    API_PORT: int = Field(default=8001, gt=0, le=65535)
+    API_PORT: int = 8001
 
-    @field_validator("SCRAPE_DELAY_SECONDS")
-    @classmethod
-    def validate_scrape_delay(cls, v: int) -> int:
-        """Ensure scrape delay is positive to respect rate limits."""
-        if v <= 0:
-            raise ValueError("SCRAPE_DELAY_SECONDS must be greater than 0")
-        return v
-
-    @field_validator("DATABASE_URL")
-    @classmethod
-    def validate_database_url(cls, v: str) -> str:
-        """Ensure DATABASE_URL is not empty."""
-        if not v or not v.strip():
-            raise ValueError("DATABASE_URL is required and cannot be empty")
-        return v
+    @property
+    def is_production(self) -> bool:
+        return self.ENV == "main"
 
     model_config = {"env_file": ".env"}
 
 
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]  # populated by env/.env at runtime
