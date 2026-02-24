@@ -104,19 +104,21 @@ def fetch_page_with_scrapling(url: str) -> str:
     else:
         imp = _coerce_impersonate(settings.SCRAPLING_IMPERSONATE)
 
-        kwargs = {
-            "timeout": settings.SCRAPLING_TIMEOUT,
-            "stealthy_headers": True,
-            "proxy": proxy,
-        }
-
         if imp is not None:
-            kwargs["impersonate"] = imp
-
-        response = Fetcher.get(
-            url,
-            **kwargs,
-        )
+            response = Fetcher.get(
+                url,
+                timeout=settings.SCRAPLING_TIMEOUT,
+                stealthy_headers=True,
+                impersonate=imp,
+                proxy=proxy,
+            )
+        else:
+            response = Fetcher.get(
+                url,
+                timeout=settings.SCRAPLING_TIMEOUT,
+                stealthy_headers=True,
+                proxy=proxy,
+            )
 
     page_source: str = response.html_content
     if not page_source:
