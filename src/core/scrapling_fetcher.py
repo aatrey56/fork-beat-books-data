@@ -10,7 +10,33 @@ Activated only when SCRAPE_BACKEND=scrapling.
 
 import time
 import logging
-from typing import Optional
+from typing import Optional, Literal, cast
+
+Impersonate = Literal[
+    "chrome",
+    "edge",
+    "safari",
+    "firefox",
+    "chrome_android",
+    "safari_ios",
+]
+
+
+def _coerce_impersonate(value: str | None) -> Optional[Impersonate]:
+    if not value:
+        return None
+    v = value.strip().lower()
+    if v in {
+        "chrome",
+        "edge",
+        "safari",
+        "firefox",
+        "chrome_android",
+        "safari_ios",
+    }:
+        return cast(Impersonate, v)
+    return None
+
 
 from src.core.config import settings
 
@@ -76,12 +102,20 @@ def fetch_page_with_scrapling(url: str) -> str:
             proxy={"server": proxy} if proxy else None,
         )
     else:
+        imp = _coerce_impersonate(settings.SCRAPLING_IMPERSONATE)
+
+        kwargs = {
+            "timeout": settings.SCRAPLING_TIMEOUT,
+            "stealthy_headers": True,
+            "proxy": proxy,
+        }
+
+        if imp is not None:
+            kwargs["impersonate"] = imp
+
         response = Fetcher.get(
             url,
-            timeout=settings.SCRAPLING_TIMEOUT,
-            stealthy_headers=True,
-            impersonate=settings.SCRAPLING_IMPERSONATE,
-            proxy=proxy,
+            **kwargs,
         )
 
     page_source: str = response.html_content
