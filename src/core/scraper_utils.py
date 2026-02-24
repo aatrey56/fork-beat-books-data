@@ -183,7 +183,9 @@ def fetch_page(url: str) -> str:
     if backend == "selenium":
         return fetch_page_with_selenium(url)
 
-    raise ValueError(f"Unknown SCRAPE_BACKEND: {backend!r}. Use 'selenium' or 'scrapling'.")
+    raise ValueError(
+        f"Unknown SCRAPE_BACKEND: {backend!r}. Use 'selenium' or 'scrapling'."
+    )
 
 
 def find_pfr_table(page_source: str, table_id: str) -> Optional[Tag]:

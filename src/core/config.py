@@ -8,7 +8,6 @@ class Settings(BaseSettings):
     Required variables will cause a clear ValidationError at startup
     if missing. See .env.example for the full variable list.
     """
-    
 
     # Database (required — app won't start without it)
     DATABASE_URL: str
