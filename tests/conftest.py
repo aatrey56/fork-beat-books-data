@@ -9,7 +9,8 @@ Provides:
 
 import os
 
-# Set DATABASE_URL before any src imports so Settings() doesn't fail during collection
+# Set DATABASE_URL before any src imports so Settings() validation doesn't
+# fail during test collection in CI (where no .env file exists).
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 
 import pytest
