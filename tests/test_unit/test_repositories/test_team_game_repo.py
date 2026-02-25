@@ -12,11 +12,12 @@ Run with:
     pytest tests/test_unit/test_repositories/test_team_game_repo.py -v
 """
 
-import pytest
 from datetime import date
 
-from src.entities.team_game import TeamGame
+import pytest
+
 from src.dtos.team_game_dto import TeamGameCreate
+from src.entities.team_game import TeamGame
 from src.repositories.team_game_repo import TeamGameRepository
 
 

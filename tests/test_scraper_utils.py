@@ -4,16 +4,17 @@ Unit tests for scraper utility functions.
 Tests retry logic, URL processing, user-agent rotation, and error handling.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-import time
-from unittest.mock import patch, MagicMock
-from src.core.scraper_utils import (
-    strip_url_hash,
-    get_random_user_agent,
-    get_random_proxy,
-    retry_with_backoff,
-)
+
 from src.core.config import settings
+from src.core.scraper_utils import (
+    get_random_proxy,
+    get_random_user_agent,
+    retry_with_backoff,
+    strip_url_hash,
+)
 
 
 class TestStripUrlHash:

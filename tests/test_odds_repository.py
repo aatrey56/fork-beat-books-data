@@ -1,16 +1,15 @@
 """Unit tests for odds repository."""
 
-import pytest
-from datetime import datetime, date
+from datetime import date, datetime
 from decimal import Decimal
 
-from src.entities.odds import Odds
-from src.entities.base import Base
-from src.dtos.odds_dto import OddsCreate
-from src.repositories.odds_repo import OddsRepository
-
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from src.dtos.odds_dto import OddsCreate
+from src.entities.base import Base
+from src.repositories.odds_repo import OddsRepository
 
 
 @pytest.fixture

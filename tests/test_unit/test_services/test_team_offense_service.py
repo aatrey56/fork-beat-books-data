@@ -9,17 +9,15 @@ Run with:
     pytest tests/test_unit/test_services/test_team_offense_service.py -v
 """
 
-import pytest
 import asyncio
-from decimal import Decimal
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from src.services.team_offense_service import (
     get_dataframe,
     scrape_and_store_team_offense,
 )
-from src.dtos.team_offense_dto import TeamOffenseCreate
-from src.entities.team_offense import TeamOffense
 
 # ---- Sample HTML for mocking PFR responses ----
 SAMPLE_PFR_HTML = """

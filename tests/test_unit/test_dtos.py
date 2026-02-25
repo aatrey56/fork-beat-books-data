@@ -2,26 +2,27 @@
 Unit tests for DTO validation.
 """
 
-import pytest
-from decimal import Decimal
 from datetime import date
+from decimal import Decimal
+
+import pytest
 from pydantic import ValidationError
 
-from src.dtos.team_offense_dto import TeamOffenseCreate, TeamOffenseResponse
-from src.dtos.team_defense_dto import TeamDefenseCreate, TeamDefenseResponse
+from src.dtos.defense_stats_dto import DefenseStatsCreate
+from src.dtos.games_dto import GamesCreate
+from src.dtos.kicking_dto import KickingCreate
+from src.dtos.kicking_stats_dto import KickingStatsCreate
 from src.dtos.passing_stats_dto import PassingStatsCreate, PassingStatsResponse
-from src.dtos.rushing_stats_dto import RushingStatsCreate, RushingStatsResponse
-from src.dtos.receiving_stats_dto import ReceivingStatsCreate, ReceivingStatsResponse
-from src.dtos.defense_stats_dto import DefenseStatsCreate, DefenseStatsResponse
-from src.dtos.kicking_stats_dto import KickingStatsCreate, KickingStatsResponse
-from src.dtos.punting_stats_dto import PuntingStatsCreate, PuntingStatsResponse
-from src.dtos.return_stats_dto import ReturnStatsCreate, ReturnStatsResponse
-from src.dtos.scoring_stats_dto import ScoringStatsCreate, ScoringStatsResponse
-from src.dtos.standings_dto import StandingsCreate, StandingsResponse
-from src.dtos.games_dto import GamesCreate, GamesResponse
-from src.dtos.kicking_dto import KickingCreate, KickingResponse
-from src.dtos.punting_dto import PuntingCreate, PuntingResponse
-from src.dtos.returns_dto import TeamReturnsCreate, TeamReturnsResponse
+from src.dtos.punting_dto import PuntingCreate
+from src.dtos.punting_stats_dto import PuntingStatsCreate
+from src.dtos.receiving_stats_dto import ReceivingStatsCreate
+from src.dtos.return_stats_dto import ReturnStatsCreate
+from src.dtos.returns_dto import TeamReturnsCreate
+from src.dtos.rushing_stats_dto import RushingStatsCreate
+from src.dtos.scoring_stats_dto import ScoringStatsCreate
+from src.dtos.standings_dto import StandingsCreate
+from src.dtos.team_defense_dto import TeamDefenseCreate
+from src.dtos.team_offense_dto import TeamOffenseCreate, TeamOffenseResponse
 
 
 class TestTeamOffenseDTO:

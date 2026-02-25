@@ -53,9 +53,9 @@ class Settings(BaseSettings):
 
     # Proxy rotation (optional)
     SCRAPE_USE_PROXY: bool = False
-    SCRAPE_PROXY_LIST: list[str] = (
-        []
-    )  # Format: ["http://proxy1:port", "http://proxy2:port"]
+    SCRAPE_PROXY_LIST: list[
+        str
+    ] = []  # Format: ["http://proxy1:port", "http://proxy2:port"]
 
     # Odds API (Phase 2)
     ODDS_API_KEY: str = ""

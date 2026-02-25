@@ -13,14 +13,15 @@ import os
 # Must be set before any src imports (Settings() validates at import time).
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 
-import pytest
 from decimal import Decimal
+
+import pytest
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
 from src.entities.base import Base
-from src.entities.team_offense import TeamOffense
 from src.entities.passing_stats import PassingStats
+from src.entities.team_offense import TeamOffense
 
 
 @pytest.fixture

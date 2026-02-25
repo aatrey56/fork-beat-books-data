@@ -1,13 +1,14 @@
 """Unit tests for StatsRetrievalService."""
 
-import pytest
-from unittest.mock import Mock, MagicMock
 from decimal import Decimal
+from unittest.mock import Mock
 
-from src.services.stats_retrieval_service import StatsRetrievalService
-from src.entities.team_offense import TeamOffense
+import pytest
+
 from src.entities.passing_stats import PassingStats
 from src.entities.standings import Standings
+from src.entities.team_offense import TeamOffense
+from src.services.stats_retrieval_service import StatsRetrievalService
 
 
 class TestStatsRetrievalService:

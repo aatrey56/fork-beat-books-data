@@ -15,8 +15,8 @@ Run with:
 """
 
 import pytest
-from sqlalchemy import create_engine, Integer, String, event
-from sqlalchemy.orm import sessionmaker, Mapped, mapped_column
+from sqlalchemy import Integer, String, create_engine, event
+from sqlalchemy.orm import Mapped, mapped_column, sessionmaker
 
 from src.entities.base import Base
 from src.repositories.base_repo import BaseRepository

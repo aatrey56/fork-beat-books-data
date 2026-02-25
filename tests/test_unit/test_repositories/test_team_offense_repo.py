@@ -8,8 +8,6 @@ Run with:
     pytest tests/test_unit/test_repositories/test_team_offense_repo.py -v
 """
 
-import pytest
-from decimal import Decimal
 
 from src.entities.team_offense import TeamOffense
 from src.repositories.team_offense_repo import TeamOffenseRepository

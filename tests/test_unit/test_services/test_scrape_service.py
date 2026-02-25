@@ -11,18 +11,17 @@ Run with:
     pytest tests/test_unit/test_services/test_scrape_service.py -v
 """
 
-import pytest
-import pandas as pd
-import numpy as np
 from datetime import date
-from unittest.mock import MagicMock
 
+import numpy as np
+import pandas as pd
+
+from src.dtos.team_game_dto import TeamGameCreate
 from src.services.scrape_service import (
     clean_value,
     flatten_pfr_columns,
     map_scraped_to_model,
 )
-from src.dtos.team_game_dto import TeamGameCreate
 
 
 class TestCleanValue:
