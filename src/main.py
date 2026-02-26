@@ -1,24 +1,24 @@
-from enum import Enum
+from enum import StrEnum
 
 from fastapi import FastAPI, HTTPException
 
 from src.services import (
-    scrape_service,
-    team_offense_service,
-    team_defense_service,
-    standings_service,
-    games_service,
-    kicking_team_service,
-    punting_team_service,
-    returns_team_service,
-    passing_stats_service,
-    rushing_stats_service,
-    receiving_stats_service,
     defense_stats_service,
+    games_service,
     kicking_stats_service,
+    kicking_team_service,
+    passing_stats_service,
     punting_stats_service,
+    punting_team_service,
+    receiving_stats_service,
     return_stats_service,
+    returns_team_service,
+    rushing_stats_service,
     scoring_stats_service,
+    scrape_service,
+    standings_service,
+    team_defense_service,
+    team_offense_service,
 )
 
 app = FastAPI(title="beat-books-data", version="0.1.0")
@@ -29,7 +29,7 @@ async def health():
     return {"status": "healthy", "service": "beat-books-data", "version": "0.1.0"}
 
 
-class StatType(str, Enum):
+class StatType(StrEnum):
     team_offense = "team_offense"
     team_defense = "team_defense"
     standings = "standings"

@@ -1,13 +1,13 @@
 """Unit tests for odds service with mocked API responses."""
 
-import pytest
-from datetime import datetime, date, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import UTC, datetime
 from decimal import Decimal
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from src.services.odds_service import OddsService
+import pytest
+
 from src.dtos.odds_dto import OddsCreate
-from src.entities.odds import Odds
+from src.services.odds_service import OddsService
 
 
 class TestOddsService:
@@ -171,7 +171,7 @@ class TestOddsService:
         mock_odds.moneyline_away = 130
         mock_odds.over_under = Decimal("47.5")
         mock_odds.sportsbook = "DraftKings"
-        mock_odds.timestamp = datetime(2024, 9, 8, 20, 0, tzinfo=timezone.utc)
+        mock_odds.timestamp = datetime(2024, 9, 8, 20, 0, tzinfo=UTC)
 
         with patch("src.services.odds_service.OddsRepository") as mock_repo:
             mock_repo.get_by_team.return_value = [mock_odds]
